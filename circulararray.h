@@ -11,22 +11,60 @@ private:
     
 public:
     CircularArray();
-    CircularArray(int _capacity);
+    CircularArray(int _capacity) {
+        array = new T[_capacity];
+        this->capacity = capacity;
+    };
     virtual ~CircularArray();
-    void push_front(T data);
+    void push_front(T data) {
+
+    };
     void push_back(T data);
     void insert(T data, int pos);
     T pop_front();
     T pop_back();
-    bool is_full();
-    bool is_empty();
-    int size();
-    void clear();
-    T &operator[](int);
+    bool is_full() {
+        return (capacity == size());
+    };
+    bool is_empty() {
+        if (front == -1) {
+            return true;
+        }
+    };
+    int size() {
+        return front-back+1;
+    };
+    void clear() {
+        delete []array;
+        array = new T[capacity];
+    };
+    T &operator[](int) {
+        return *(array + int);
+    };
     void sort();
-    bool is_sorted();
-    void reverse();
-    string to_string(string sep=" ");
+    bool is_sorted(){
+        for (int i = front; i < back; i++) {
+            if (*(array + i) > *(array + i + 1)) {
+                return false;
+            }
+        }
+        return true;
+    };
+    void reverse() {
+        T *new_array = new T[capacity];
+        for (int i = back; i <= front; i--) {
+            *(new_array + size() - i) = *(array + i);
+        }
+        array = new_array;
+    };
+    string to_string(string sep=" ") {
+        string final = "";
+        for (int i = front; i <= back; i++) {
+            final = final + *(array + i);
+        }
+        final.pop_back();
+        return final;
+    };
 
 private:
     int next(int);
