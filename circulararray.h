@@ -11,10 +11,7 @@ private:
     
 public:
     CircularArray();
-    CircularArray(int _capacity) {
-        array = new T[_capacity];
-        this->capacity = capacity;
-    };
+    CircularArray(int _capacity);
     virtual ~CircularArray();
     void push_front(T data) {
         if (is_empty()) {
@@ -30,7 +27,7 @@ public:
             front = (front-1)%capacity;
             *(array + front) = data;
         } else {
-            front = (front-1)%capacity;
+            front = (front==0)?(capacity-1):(front-1)%capacity;
             *(array + front) = data;
         }
     };
@@ -61,30 +58,31 @@ public:
         }
     };
     T pop_front() {
-        if (is_empty()) {
-            return;
+        if (!is_empty()) {
+            if (size() == 1) {
+                T final = *(array + front);
+                front = -1;
+                return final;
+            }
+            else {
+                T final = *(array + front);
+                front = (front+1)%capacity;
+                return final;
+            }
         }
-        else if (size() == 1) {
-            front = -1;
-        }
-        else {
-            T final = *(array + front);
-            front = (front+1)%capacity;
-            return final;
-        }
-        
     };
     T pop_back() {
-        if (is_empty()) {
-            return;
-        }
-        else if (size() == 1) {
-            front = -1;
-        }
-        else {
-            T final = *(array + back);
-            back = (back-1)%capacity;
-            return final;
+        if (!is_empty()) {
+            if (size() == 1) {
+                T final = *(array + back);
+                front = -1;
+                return final;
+            }
+            else {
+                T final = *(array + back);
+                back = (back==0)?(capacity-1):(back-1)%capacity;
+                return final;
+            }
         }
     };
     bool is_full() {
@@ -94,7 +92,7 @@ public:
         return (front==-1);
     };
     int size() {
-        return back-front+1;
+        return front>back?(capacity - (front-back+1) + 2):(back-front+1);
     };
     void clear() {
         delete []array;
@@ -103,19 +101,52 @@ public:
     T &operator[](int index) {
         return *(array + index);
     };
-    void sort();
+    void swap(int* a, int* b){
+        int temp = *a;
+        *a = *b;
+        *b = temp;
+    }
+    int index(int i) {
+        return (i+front)%capacity;
+    }
+    int partition(int* arr, int low, int high){
+        int pivot = arr[index(high)];	// ultimo elemento del vector
+        int i = (low - 1);
+
+        for(int j=low; j<=high-1; j++){
+            if(arr[index(j)] <= pivot){
+                i++;
+                swap(&arr[index(i)], &arr[index(j)]);
+            }
+        }
+
+        swap(&arr[index(i+1)], &arr[index(high)]);
+
+        return (i+1);
+    }
+    void quickSort(int arr[], int low, int high) {
+        if (low < high) {
+            int pivot = partition(arr, low, high);
+    
+            quickSort(arr, low, pivot - 1);
+            quickSort(arr, pivot + 1, high);
+        }
+    }
+    void sort() {
+        quickSort(array, 0, size()-1);
+    }
     bool is_sorted(){
-        for (int i = front; i < back; i++) {
-            if (*(array + i) > *(array + i + 1)) {
+        for (int i = 0; i < size(); i++) {
+            if (array[(i+front)%capacity] > array[(i+front)%capacity + 1]) {
                 return false;
             }
         }
         return true;
     };
     void reverse() {
-        T *new_array = new T[capacity];
-        for (int i = back; i <= front; i--) {
-            *(new_array + size() - i) = *(array + i);
+        int* new_array = new int[capacity];
+        for (int i = 0; i < size(); i++) {
+            new_array[index(i)] = array[index(size() - i - 1)];
         }
         array = new_array;
     };
@@ -137,7 +168,8 @@ CircularArray<T>::CircularArray(int _capacity)
 {
     this->array = new T[_capacity];
     this->capacity = _capacity;
-    this->front = this->back = -1;
+    this->front = -1;
+    this->back = 0;
 }
 
 template <class T>
@@ -163,6 +195,6 @@ string CircularArray<T>::to_string(string sep)
 {
     string result = ""; 
     for (int i = 0; i < size(); i++)
-        result += std::to_string((*this)[i]) + sep;
+        result += std::to_string((*this)[index(i)]) + sep;
     return result;    
 }
